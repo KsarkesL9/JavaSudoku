@@ -1,0 +1,11 @@
+pl\polsl\michal\sadkowski\java1\sudoku\model\User.class
+pl\polsl\michal\sadkowski\java1\sudoku\model\SudokuGame.class
+pl\polsl\michal\sadkowski\java1\sudoku\view\ConsoleView.class
+pl\polsl\michal\sadkowski\java1\sudoku\controller\AppController.class
+pl\polsl\michal\sadkowski\java1\sudoku\model\Board.class
+pl\polsl\michal\sadkowski\java1\sudoku\Sudoku.class
+pl\polsl\michal\sadkowski\java1\sudoku\exceptions\SudokuException.class
+pl\polsl\michal\sadkowski\java1\sudoku\exceptions\package-info.class
+pl\polsl\michal\sadkowski\java1\sudoku\model\package-info.class
+pl\polsl\michal\sadkowski\java1\sudoku\view\package-info.class
+pl\polsl\michal\sadkowski\java1\sudoku\controller\package-info.class

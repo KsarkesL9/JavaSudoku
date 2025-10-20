@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"pl.polsl.michal.sadkowski.java1.sudoku"},{"l":"pl.polsl.michal.sadkowski.java1.sudoku.controller"},{"l":"pl.polsl.michal.sadkowski.java1.sudoku.exceptions"},{"l":"pl.polsl.michal.sadkowski.java1.sudoku.model"},{"l":"pl.polsl.michal.sadkowski.java1.sudoku.view"}];updateSearchResults();
