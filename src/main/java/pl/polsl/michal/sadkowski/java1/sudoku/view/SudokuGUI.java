@@ -1,46 +1,43 @@
+// pl.polsl.michal.sadkowski.java1.sudoku.view.SudokuGUI.java
 package pl.polsl.michal.sadkowski.java1.sudoku.view;
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.util.Stack;
+import pl.polsl.michal.sadkowski.java1.sudoku.controller.SudokuGUIController;
 
-public class SudokuGUI extends JFrame {
+import javax.swing.*;
+import java.awt.*;
+// FIX: Poprawne importy dla KeyboardFocusManager
+import java.awt.event.KeyEvent;
+import java.awt.KeyEventDispatcher; 
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionListener; // Dodano, ponieważ Swing go potrzebuje
+
+public class SudokuGUI extends JFrame implements SudokuGUIController.GUIUpdater {
 
     private BoardPanel boardPanel;
     private JLabel timerLabel;
-    private Timer gameTimer;
-    private int timeElapsed;
-    private Stack<Move> moveHistory;
-
-
-    private static class Move {
-        int row;
-        int col;
-        String previousValue;
-
-        Move(int row, int col, String previousValue) {
-            this.row = row;
-            this.col = col;
-            this.previousValue = previousValue;
-        }
-    }
-
+    private SudokuGUIController controller; 
 
     public SudokuGUI() {
         super("Sudoku");
+        initUI();
+    }
+    
+    /** Wstrzykuje Kontroler (Dependency Injection). */
+    public void setController(SudokuGUIController controller) {
+        this.controller = controller;
+        // Przekazanie dalej do komponentu składowego
+        this.boardPanel.setController(controller); 
+    }
+    
+    private void initUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        moveHistory = new Stack<>();
-
-        boardPanel = new BoardPanel(this);
+        // Inicjalizacja BoardPanel z null, bo Kontroler będzie wstrzyknięty później
+        boardPanel = new BoardPanel(null); 
         add(boardPanel, BorderLayout.CENTER);
+
+        // ... Budowa Panelu Kontrolnego ...
 
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
@@ -53,72 +50,93 @@ public class SudokuGUI extends JFrame {
         controlPanel.add(timerPanel);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
+        // Przyciski numeryczne
         JPanel numberButtonPanel = new JPanel(new GridLayout(2, 5, 5, 5));
         for (int i = 1; i <= 9; i++) {
             JButton numButton = new JButton(String.valueOf(i));
             numButton.setFont(new Font("Arial", Font.BOLD, 16));
             numButton.setFocusable(false);
             int num = i;
-            numButton.addActionListener(e -> boardPanel.setSelectedCellValue(String.valueOf(num)));
+            numButton.addActionListener(e -> {
+                 int r = boardPanel.getSelectedRow();
+                 int c = boardPanel.getSelectedCol();
+                 // DELEGACJA: View -> Controller
+                 if (controller != null) controller.handleCellInput(r, c, String.valueOf(num));
+            });
             numberButtonPanel.add(numButton);
         }
         JButton clearButton = new JButton("0");
         clearButton.setFont(new Font("Arial", Font.BOLD, 16));
         clearButton.setFocusable(false);
-        clearButton.addActionListener(e -> boardPanel.setSelectedCellValue(""));
+        clearButton.addActionListener(e -> {
+            int r = boardPanel.getSelectedRow();
+            int c = boardPanel.getSelectedCol();
+            // DELEGACJA: View -> Controller
+            if (controller != null) controller.handleCellInput(r, c, "");
+        });
         numberButtonPanel.add(clearButton);
 
         controlPanel.add(numberButtonPanel);
         controlPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
+        // Przyciski akcji
         JPanel actionButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
 
         JButton undoButton = new JButton("Cofnij");
         undoButton.setFocusable(false);
-        undoButton.addActionListener(e -> undoLastMove());
+        undoButton.addActionListener(e -> { if (controller != null) controller.undoLastMove(); }); 
         actionButtonPanel.add(undoButton);
 
         JButton restartButton = new JButton("Restart");
         restartButton.setFocusable(false);
-        restartButton.addActionListener(e -> restartGame());
+        restartButton.addActionListener(e -> { if (controller != null) controller.restartGame(); });
         actionButtonPanel.add(restartButton);
 
         JButton newGameButton = new JButton("Nowa gra");
         newGameButton.setFocusable(false);
-        newGameButton.addActionListener(e -> startNewGame());
+        newGameButton.addActionListener(e -> {
+            String[] difficulties = {"Łatwy", "Średni", "Trudny"};
+            String selectedDifficulty = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Wybierz poziom trudności:",
+                    "Nowa gra",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    difficulties,
+                    difficulties[0]
+            );
+
+            if (selectedDifficulty != null) {
+                if (controller != null) controller.startNewGame(selectedDifficulty);
+            } else {
+                 if (controller != null) controller.startTimer();
+            }
+        });
         actionButtonPanel.add(newGameButton);
 
         controlPanel.add(actionButtonPanel);
 
         add(controlPanel, BorderLayout.EAST);
 
-        timeElapsed = 0;
-        gameTimer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                timeElapsed++;
-                int minutes = timeElapsed / 60;
-                int seconds = timeElapsed % 60;
-                timerLabel.setText(String.format("Czas: %02d:%02d", minutes, seconds));
-            }
-        });
-
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
-        startTimer();
+
+        // Rejestracja globalnego nasłuchu klawiatury jest teraz poprawnie zaimportowana
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent e) {
+                if (controller == null) return false;
+                // Logika wpisywania cyfr (Delegacja do Kontrolera)
                 if (e.getID() == KeyEvent.KEY_TYPED && boardPanel.hasSelection()) {
                     char keyChar = e.getKeyChar();
                     if (Character.isDigit(keyChar)) {
                         String value = String.valueOf(keyChar);
-                        if(value.equals("0")) {
-                           boardPanel.setSelectedCellValue("");
-                        } else {
-                           boardPanel.setSelectedCellValue(value);
-                        }
+                        int r = boardPanel.getSelectedRow();
+                        int c = boardPanel.getSelectedCol();
+                        
+                        controller.handleCellInput(r, c, value); 
+                        
                         return true;
                     }
                 }
@@ -127,88 +145,47 @@ public class SudokuGUI extends JFrame {
         });
     }
 
-    public void recordMove(int row, int col, String previousValue, String newValue) {
-        if (!previousValue.equals(newValue)) {
-            moveHistory.push(new Move(row, col, previousValue));
-        }
+    // --- Implementacja interfejsu GUIUpdater (Widok wykonuje polecenia Kontrolera) ---
+    
+    @Override
+    public void setTimerText(String text) {
+        timerLabel.setText(text);
     }
 
-
-    private void undoLastMove() {
-       if (!moveHistory.isEmpty()) {
-            Move lastMove = moveHistory.pop();
-            boardPanel.setCellValue(lastMove.row, lastMove.col, lastMove.previousValue, false);
-            checkWinCondition();
-        }
+    @Override
+    public void setCellValue(int row, int col, String value) {
+        // Kontroler mówi: Ustaw tę wartość WIDOCZNIE, View wykonuje.
+        boardPanel.setCellValue(row, col, value); 
     }
-
-    private void restartGame() {
-        boardPanel.clearBoard();
-        moveHistory.clear();
-        stopTimer();
-        resetTimer();
-         JOptionPane.showMessageDialog(this, "Plansza zresetowana.");
+    
+    @Override
+    public void updateCellBorder(int row, int col) {
+        // Kontroler mówi: Zaktualizuj wizualny stan wybranej komórki.
+        boardPanel.selectCell(row, col); 
     }
-
-    private void startNewGame() {
-        stopTimer();
-        String[] difficulties = {"Łatwy", "Średni", "Trudny"};
-        String selectedDifficulty = (String) JOptionPane.showInputDialog(
-                this,
-                "Wybierz poziom trudności:",
-                "Nowa gra",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                difficulties,
-                difficulties[0]
-        );
-
-        if (selectedDifficulty != null) {
-            boardPanel.clearBoard();
-            moveHistory.clear();
-            resetTimer();
-            startTimer();
-             JOptionPane.showMessageDialog(this, "Rozpoczynanie nowej gry - poziom: " + selectedDifficulty);
-
-        } else {
-             startTimer();
-        }
+    
+    @Override
+    public void clearBoardGUI() {
+        boardPanel.clearBoardGUI();
     }
-
-    private void startTimer() {
-        if (!gameTimer.isRunning()) {
-            gameTimer.start();
-        }
-    }
-
-    private void stopTimer() {
-        if (gameTimer.isRunning()) {
-            gameTimer.stop();
-        }
-    }
-
-    private void resetTimer() {
-        timeElapsed = 0;
-        timerLabel.setText("Czas: 00:00");
-    }
-
-    public void checkWinCondition() {
-        if (boardPanel.isBoardFull()) {
-            stopTimer();
-            JOptionPane.showMessageDialog(this,
-                    "Gratulacje! Ukończyłeś Sudoku w czasie " + String.format("%02d:%02d", timeElapsed / 60, timeElapsed % 60) + "!",
+    
+    @Override
+    public void showWinMessage(String time) {
+        JOptionPane.showMessageDialog(this,
+                    "Gratulacje! Ukończyłeś Sudoku w czasie " + time + "!",
                     "Wygrana!",
                     JOptionPane.INFORMATION_MESSAGE);
-        }
     }
-
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new SudokuGUI();
-            }
-        });
+    
+    @Override
+    public void showInfoMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
     }
+    
+    @Override
+    public void showErrorMessage(String message) {
+        JOptionPane.showMessageDialog(this, message, "Błąd aplikacji", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    // Usunięto starą metodę main
 }

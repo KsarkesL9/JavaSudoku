@@ -1,29 +1,24 @@
+// pl.polsl.michal.sadkowski.java1.sudoku.view.BoardPanel.java
 package pl.polsl.michal.sadkowski.java1.sudoku.view;
+
+import pl.polsl.michal.sadkowski.java1.sudoku.controller.SudokuGUIController;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
 
 public class BoardPanel extends JPanel {
 
     private static final int GRID_SIZE = 9;
     private static final int SUBGRID_SIZE = 3;
-    private JTextField[][] cells;
+    private final JTextField[][] cells;
     private int selectedRow = -1;
     private int selectedCol = -1;
-    private SudokuGUI mainGUI;
+    
+    private SudokuGUIController controller; // Umożliwia setController
 
 
     private final Color backgroundColor = Color.WHITE;
@@ -31,17 +26,21 @@ public class BoardPanel extends JPanel {
     private final Color subgridBorderColor = Color.BLACK;
     private final Color cellBorderColor = Color.LIGHT_GRAY;
     private final Font cellFont = new Font("Arial", Font.BOLD, 20);
-    private final Border defaultBorder = new LineBorder(cellBorderColor, 1);
     private final Border thickBorder = new LineBorder(subgridBorderColor, 2);
     private final Border selectedBorder = new LineBorder(Color.BLUE, 2);
 
 
-    public BoardPanel(SudokuGUI gui) {
-        this.mainGUI = gui;
+    public BoardPanel(SudokuGUIController controller) { 
+        this.controller = controller; 
         setLayout(new GridLayout(GRID_SIZE, GRID_SIZE));
         cells = new JTextField[GRID_SIZE][GRID_SIZE];
         initializeBoard();
         setupArrowKeyNavigation();
+    }
+    
+    /** Umożliwia wstrzyknięcie Kontrolera. */
+    public void setController(SudokuGUIController controller) {
+         this.controller = controller;
     }
 
     private void initializeBoard() {
@@ -52,7 +51,7 @@ public class BoardPanel extends JPanel {
                 cell.setHorizontalAlignment(JTextField.CENTER);
                 cell.setFont(cellFont);
                 cell.setBackground(backgroundColor);
-                cell.setEditable(false);
+                cell.setEditable(true); 
                 cell.setFocusable(true);
 
                 cell.setBorder(getCompositeBorder(row, col));
@@ -60,10 +59,12 @@ public class BoardPanel extends JPanel {
                 final int r = row;
                 final int c = col;
 
+                // DELEGACJA: Kliknięcie i Focus idzie do Kontrolera
                 cell.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mousePressed(MouseEvent e) {
                         selectCell(r, c);
+                        if (controller != null) controller.handleCellClick(r, c); 
                     }
                 });
 
@@ -71,28 +72,45 @@ public class BoardPanel extends JPanel {
                     @Override
                     public void focusGained(FocusEvent e) {
                        selectCell(r, c);
+                       if (controller != null) controller.handleCellClick(r, c); 
                     }
-
                      @Override
-                     public void focusLost(FocusEvent e) {
-
-                     }
+                     public void focusLost(FocusEvent e) { /* Czysty View */ }
                 });
 
+                // DELEGACJA: Wprowadzanie klawiszem idzie do Kontrolera
+                cell.addKeyListener(new KeyAdapter() {
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+                        if (controller == null) return;
+                        char keyChar = e.getKeyChar();
+                        if (Character.isDigit(keyChar) && keyChar != KeyEvent.VK_BACK_SPACE) {
+                             e.consume(); 
+                             String newValue = String.valueOf(keyChar);
+                             controller.handleCellInput(r, c, newValue);
+
+                        } else if (keyChar == KeyEvent.VK_BACK_SPACE || keyChar == KeyEvent.VK_DELETE || keyChar == '0') {
+                             e.consume(); 
+                             controller.handleCellInput(r, c, "");
+                        } else {
+                            e.consume();
+                        }
+                    }
+                });
+                
                 add(cell);
             }
         }
         int preferredSize = 50 * GRID_SIZE;
         setPreferredSize(new Dimension(preferredSize, preferredSize));
     }
-
+    
     private Border getCompositeBorder(int row, int col) {
          int top = 1, left = 1, bottom = 1, right = 1;
          if (row % SUBGRID_SIZE == 0) top = 2;
          if (col % SUBGRID_SIZE == 0) left = 2;
          if ((row + 1) % SUBGRID_SIZE == 0 ) bottom = 2;
          if ((col + 1) % SUBGRID_SIZE == 0 ) right = 2;
-
 
          Border subgridBorder = BorderFactory.createMatteBorder(top, left, bottom, right, subgridBorderColor);
 
@@ -102,13 +120,11 @@ public class BoardPanel extends JPanel {
 
         return subgridBorder;
     }
-
-    private void selectCell(int row, int col) {
+    
+    // Logika wizualna (WIDOKOWA)
+    public void selectCell(int row, int col) {
         int previousSelectedRow = selectedRow;
         int previousSelectedCol = selectedCol;
-
-        selectedRow = -1;
-        selectedCol = -1;
 
         if (previousSelectedRow != -1 && previousSelectedCol != -1 &&
             (previousSelectedRow != row || previousSelectedCol != col))
@@ -119,67 +135,47 @@ public class BoardPanel extends JPanel {
 
         selectedRow = row;
         selectedCol = col;
-
+        
         if (selectedRow != -1 && selectedCol != -1) {
             cells[selectedRow][selectedCol].setBackground(selectedColor);
             cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol));
             cells[selectedRow][selectedCol].requestFocusInWindow();
         }
     }
-
-
-    public void setSelectedCellValue(String value) {
-        if (selectedRow != -1 && selectedCol != -1) {
-            setCellValue(selectedRow, selectedCol, value, true);
-        }
-    }
-
-    public void setCellValue(int row, int col, String value, boolean recordMove) {
+    
+    // Metoda polecana przez Kontroler do zmiany wartości wyświetlanej
+    public void setCellValue(int row, int col, String value) { 
         if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
-            String previousValue = cells[row][col].getText();
-             if (value.isEmpty() || (value.matches("[1-9]"))) {
-                 if (recordMove && mainGUI != null) {
-                      mainGUI.recordMove(row, col, previousValue, value);
-                 }
-                cells[row][col].setText(value);
-                 if(mainGUI != null) {
-                      mainGUI.checkWinCondition();
-                 }
-            }
+            cells[row][col].setText(value);
         }
     }
-
-
-    public boolean hasSelection() {
-        return selectedRow != -1 && selectedCol != -1;
-    }
-
-    public void clearBoard() {
-        for (int row = 0; row < GRID_SIZE; row++) {
+    
+    // Metoda polecana przez Kontroler do czyszczenia View
+    public void clearBoardGUI() {
+         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
-               setCellValue(row, col, "", false);
+               setCellValue(row, col, "");
             }
         }
          if (selectedRow != -1 && selectedCol != -1) {
             cells[selectedRow][selectedCol].setBackground(backgroundColor);
-             cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol));
+            cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol));
             selectedRow = -1;
             selectedCol = -1;
         }
     }
-
-    public boolean isBoardFull() {
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
-                if (cells[row][col].getText().isEmpty()) {
-                    return false;
-                }
-            }
-        }
-        return true;
+    
+    public int getSelectedRow() {
+        return selectedRow;
     }
 
+    public int getSelectedCol() {
+        return selectedCol;
+    }
+    
+    // Logika nawigacji (WIDOKOWA)
     private void setupArrowKeyNavigation() {
+        // Kod ten pozostaje bez zmian, manipuluje wyłącznie stanem 'selectedRow/Col'
         InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = getActionMap();
 
@@ -190,7 +186,7 @@ public class BoardPanel extends JPanel {
                 moveSelection(-1, 0);
             }
         });
-
+        // ... (reszta skrótów klawiszowych dla DOWN, LEFT, RIGHT) ...
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "moveDown");
         actionMap.put("moveDown", new AbstractAction() {
             @Override
@@ -227,5 +223,9 @@ public class BoardPanel extends JPanel {
                  selectCell(newRow, newCol);
             }
         }
+    }
+    
+    public boolean hasSelection() {
+        return selectedRow != -1 && selectedCol != -1;
     }
 }
