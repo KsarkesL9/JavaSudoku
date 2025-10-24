@@ -1,26 +1,32 @@
 // pl.polsl.michal.sadkowski.java1.sudoku.controller.SudokuGUIController.java
+
 package pl.polsl.michal.sadkowski.java1.sudoku.controller;
 
 import pl.polsl.michal.sadkowski.java1.sudoku.model.SudokuGame;
 import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
 
-import javax.swing.Timer;
-import java.awt.event.ActionEvent;
 import java.util.Stack;
+// Usunięto: import javax.swing.Timer;
+// Usunięto: import java.awt.event.ActionEvent;
 
+/**
+ * Controller class for the Sudoku GUI application.
+ * Manages game flow, user input, model updates, and view synchronization.
+ *
+ * @author Michał Sadkowski
+ * @version 1.2 (SRP)
+ */
 public class SudokuGUIController {
 
     private final SudokuGame game;
-    private final GUIUpdater gui; 
+    private final GUIUpdater gui;
+    private final GameTimer gameTimer; 
 
-    // ---- Stan Gry (przeniesiony z Widoku) ----
     private final Stack<Move> moveHistory;
-    private final Timer gameTimer;
-    private int timeElapsed;
-    // ---------------------------------------------
+
 
     public static class Move {
-        final int row;
+        final int row; 
         final int col;
         final String previousValue;
 
@@ -47,34 +53,28 @@ public class SudokuGUIController {
         this.gui = gui;
         this.moveHistory = new Stack<>();
         
-        this.timeElapsed = 0;
-        this.gameTimer = new Timer(1000, this::handleTimerTick);
-        startTimer();
+        this.gameTimer = new GameTimer(gui); 
+        this.gameTimer.start();
     }
     
-    // --- Metody obsługujące zdarzenia View ---
 
-    /** Obsługa wprowadzenia nowej wartości przez użytkownika (z przycisku lub klawiatury). */
     public void handleCellInput(int row, int col, String value) {
-        // ... (Logika kontrolera pozostaje bez zmian) ...
         String previousValue = getBoardCell(row, col);
         
         if (value.isEmpty() || value.matches("[1-9]")) {
             if (!previousValue.equals(value)) {
                 recordMove(row, col, previousValue, value);
             }
+            
             try {
                 int modelValue = value.isEmpty() ? 0 : Integer.parseInt(value);
-                // Komunikacja z Modelem
-                game.getBoard().setCell(row + 1, col + 1, modelValue);
+                game.getBoard().setCell(row, col, modelValue);
             } catch (SudokuException e) {
-                // Obsługa błędu logiki Modelu
                 gui.showErrorMessage("Błąd Sudoku: " + e.getMessage());
                 gui.setCellValue(row, col, previousValue); 
                 return;
             }
             
-            // Komunikacja z Widokiem
             gui.setCellValue(row, col, value);
             
             checkWinCondition();
@@ -95,7 +95,7 @@ public class SudokuGUIController {
             
             try {
                  int modelValue = lastMove.previousValue.isEmpty() ? 0 : Integer.parseInt(lastMove.previousValue);
-                 game.getBoard().setCell(lastMove.row + 1, lastMove.col + 1, modelValue);
+                 game.getBoard().setCell(lastMove.row, lastMove.col, modelValue); 
             } catch (SudokuException e) {
                  gui.showErrorMessage("Błąd podczas cofania ruchu: " + e.getMessage());
                  return;
@@ -110,32 +110,24 @@ public class SudokuGUIController {
     public void restartGame() {
         game.getBoard().clear();
         moveHistory.clear();
-        stopTimer();
-        resetTimer();
+        gameTimer.stop();
+        gameTimer.reset();
         gui.clearBoardGUI();
         gui.showInfoMessage("Plansza zresetowana.");
     }
     
     /** Rozpoczyna nową grę z wybranym poziomem trudności. */
     public void startNewGame(String selectedDifficulty) {
-        stopTimer();
+        gameTimer.stop();
         game.getBoard().clear();
         moveHistory.clear();
-        resetTimer();
+        gameTimer.reset();
         
         gui.clearBoardGUI();
-        startTimer();
+        gameTimer.start();
         gui.showInfoMessage("Rozpoczynanie nowej gry - poziom: " + selectedDifficulty);
     }
     
-    // --- Metody zarządzające stanem gry ---
-
-    private void handleTimerTick(ActionEvent e) {
-        timeElapsed++;
-        int minutes = timeElapsed / 60;
-        int seconds = timeElapsed % 60;
-        gui.setTimerText(String.format("Czas: %02d:%02d", minutes, seconds));
-    }
     
     private void recordMove(int row, int col, String previousValue, String newValue) {
         if (!previousValue.equals(newValue)) {
@@ -145,7 +137,7 @@ public class SudokuGUIController {
 
     private String getBoardCell(int row, int col) {
          try {
-            int value = game.getBoard().getCell(row + 1, col + 1);
+            int value = game.getBoard().getCell(row, col); 
             return value == 0 ? "" : String.valueOf(value);
         } catch (SudokuException e) {
             gui.showErrorMessage("Błąd odczytu komórki: " + e.getMessage());
@@ -158,7 +150,7 @@ public class SudokuGUIController {
         for (int r = 0; r < 9; r++) {
             for (int c = 0; c < 9; c++) {
                  try {
-                    if (game.getBoard().getCell(r + 1, c + 1) == 0) {
+                    if (game.getBoard().getCell(r, c) == 0) { 
                         isFull = false;
                         break;
                     }
@@ -171,26 +163,9 @@ public class SudokuGUIController {
         }
 
         if (isFull) {
-            stopTimer();
-            String time = String.format("%02d:%02d", timeElapsed / 60, timeElapsed % 60);
+            gameTimer.stop();
+            String time = gameTimer.getCurrentFormattedTime();
             gui.showWinMessage(time);
         }
-    }
-
-    public void startTimer() {
-        if (!gameTimer.isRunning()) {
-            gameTimer.start();
-        }
-    }
-
-    public void stopTimer() {
-        if (gameTimer.isRunning()) {
-            gameTimer.stop();
-        }
-    }
-
-    public void resetTimer() {
-        timeElapsed = 0;
-        gui.setTimerText("Czas: 00:00");
     }
 }

@@ -1,3 +1,5 @@
+// pl.polsl.michal.sadkowski.java1.sudoku.view.ConsoleView.java
+
 package pl.polsl.michal.sadkowski.java1.sudoku.view;
 
 import pl.polsl.michal.sadkowski.java1.sudoku.model.Board;
@@ -7,7 +9,7 @@ import java.util.Scanner;
  * Console view for display Sudoku board and handle user input.
  *
  * @author Michał Sadkowski
- * @version 1.1
+ * @version 1.2 (try Parse refactor)
  */
 public class ConsoleView {
     /** Scanner object for reading user input from console. */
@@ -51,8 +53,7 @@ public class ConsoleView {
     }
 
     /**
-     * Ask user for a number 1-9 (row/column).
-     * This method think user input is correct number.
+     * Ask user for a number (dla wiersza/kolumny).
      *
      * @param prompt The prompt message to show.
      * @return The number user write.
@@ -64,8 +65,7 @@ public class ConsoleView {
     }
 
     /**
-     * Ask user for a number 0-9 (0 is empty).
-     * This method think user input is correct number.
+     * Ask user for a number (dla wartości 0-9).
      *
      * @param prompt The prompt message to show.
      * @return The number user write.

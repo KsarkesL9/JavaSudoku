@@ -1,6 +1,7 @@
+// pl.polsl.michal.sadkowski.java1.sudoku.controller.AppController.java
+
 package pl.polsl.michal.sadkowski.java1.sudoku.controller;
 
-//import pl.polsl.michal.sadkowski.java1.sudoku.model.Board;
 import pl.polsl.michal.sadkowski.java1.sudoku.model.SudokuGame;
 import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
 import pl.polsl.michal.sadkowski.java1.sudoku.view.ConsoleView;
@@ -11,7 +12,7 @@ import pl.polsl.michal.sadkowski.java1.sudoku.view.ConsoleView;
  * - if no args -> simple REPL (print, set, get, clear, exit)
  *
  * @author Michał Sadkowski
- * @version 1.1
+ * @version 1.2 (fit to 0-based indexing model)
  */
 public class AppController {
     /** The Sudoku game state. */
@@ -56,11 +57,11 @@ public class AppController {
                     return;
                 }
                 Integer r = view.tryParse(parts[1]), c = view.tryParse(parts[2]);
-                if (r == null || c == null) {
-                    view.display("Not a correct number argument for get.");
+                if (r == null || c == null || r < 1 || r > 9 || c < 1 || c > 9) {
+                    view.display("Not a correct number argument for get (must be 1-9).");
                     return;
                 }
-                int val = game.getBoard().getCell(r, c);
+                int val = game.getBoard().getCell(r - 1, c - 1); 
                 view.display(String.format("Cell (%d,%d) = %d", r, c, val));
                 return;
             }
@@ -70,11 +71,11 @@ public class AppController {
                     return;
                 }
                 Integer r = view.tryParse(parts[1]), c = view.tryParse(parts[2]), v = view.tryParse(parts[3]);
-                if (r == null || c == null || v == null) {
-                    view.display("Not a corect number value for set.");
+                if (r == null || c == null || v == null || r < 1 || r > 9 || c < 1 || c > 9 || v < 0 || v > 9) {
+                    view.display("Not a correct number value for set (r, c must be 1-9; v must be 0-9).");
                     return;
                 }
-                game.getBoard().setCell(r, c, v);
+                game.getBoard().setCell(r - 1, c - 1, v);
                 view.display("OK");
                 return;
             }
@@ -118,7 +119,11 @@ public class AppController {
                         r = view.askInt("Enter row 1-9:");
                         c = view.askInt("Enter column 1-9:");
                     }
-                    int val = game.getBoard().getCell(r, c);
+                    if (r < 1 || r > 9 || c < 1 || c > 9) {
+                        view.display("Error: Row/column must be 1-9.");
+                        continue;
+                    }
+                    int val = game.getBoard().getCell(r - 1, c - 1); 
                     view.display(String.format("Cell (%d,%d) = %d", r, c, val));
                 } else if (cmd.equals("set")) {
                     int r, c, v;
@@ -131,7 +136,11 @@ public class AppController {
                         c = view.askInt("Enter column 1-9:");
                         v = view.askIntAllowZero("Enter value 0-9 (0 = empty):");
                     }
-                    game.getBoard().setCell(r, c, v);
+                    if (r < 1 || r > 9 || c < 1 || c > 9) {
+                        view.display("Error: Row/column must be 1-9.");
+                        continue;
+                    }
+                    game.getBoard().setCell(r - 1, c - 1, v);
                     view.display("OK");
                 } else {
                     view.display("Unknown command. Use: print, set, get, clear, exit");

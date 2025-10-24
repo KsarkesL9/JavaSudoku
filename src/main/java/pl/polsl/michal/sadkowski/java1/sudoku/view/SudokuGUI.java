@@ -9,7 +9,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.KeyEventDispatcher; 
 import java.awt.KeyboardFocusManager;
-import java.awt.event.ActionListener; // Dodano, ponieważ Swing go potrzebuje
+import java.awt.event.ActionListener; 
 
 public class SudokuGUI extends JFrame implements SudokuGUIController.GUIUpdater {
 
@@ -61,6 +61,7 @@ public class SudokuGUI extends JFrame implements SudokuGUIController.GUIUpdater 
                  int r = boardPanel.getSelectedRow();
                  int c = boardPanel.getSelectedCol();
                  // DELEGACJA: View -> Controller
+                 // UWAGA: Wywołanie kontrolera musi być 0-oparte.
                  if (controller != null) controller.handleCellInput(r, c, String.valueOf(num));
             });
             numberButtonPanel.add(numButton);
@@ -108,9 +109,8 @@ public class SudokuGUI extends JFrame implements SudokuGUIController.GUIUpdater 
 
             if (selectedDifficulty != null) {
                 if (controller != null) controller.startNewGame(selectedDifficulty);
-            } else {
-                 if (controller != null) controller.startTimer();
-            }
+            } 
+            // USUNIĘTO: ZBĘDNĄ LINIJKĘ: if (controller != null) controller.startTimer();
         });
         actionButtonPanel.add(newGameButton);
 
@@ -186,6 +186,4 @@ public class SudokuGUI extends JFrame implements SudokuGUIController.GUIUpdater 
     public void showErrorMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Błąd aplikacji", JOptionPane.ERROR_MESSAGE);
     }
-    
-    // Usunięto starą metodę main
 }

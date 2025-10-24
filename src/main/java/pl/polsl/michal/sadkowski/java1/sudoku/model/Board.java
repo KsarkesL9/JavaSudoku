@@ -1,3 +1,5 @@
+// pl.polsl.michal.sadkowski.java1.sudoku.model.Board.java
+
 package pl.polsl.michal.sadkowski.java1.sudoku.model;
 
 import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
@@ -7,7 +9,7 @@ import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
  * This class store state and set/clear board.
  *
  * @author Michał Sadkowski
- * @version 1.1
+ * @version 1.2 (set to 0-indexing array)
  */
 public class Board {
     /** The board size is 9x9. */
@@ -25,38 +27,34 @@ public class Board {
     /**
      * Set value in cell.
      *
-     * @param row1 row index (1-9)
-     * @param col1 column index (1-9)
+     * @param row row index (0-8)
+     * @param col column index (0-8)
      * @param value value to set (0-9, 0 is empty)
      * @throws SudokuException if row, column or value is bad range.
      */
-    public void setCell(int row1, int col1, int value) throws SudokuException {
-        int r = row1 - 1;
-        int c = col1 - 1;
-        if (r < 0 || r >= N || c < 0 || c >= N) {
-            throw new SudokuException("Row/col out of range (1-9).");
+    public void setCell(int row, int col, int value) throws SudokuException {
+        if (row < 0 || row >= N || col < 0 || col >= N) {
+            throw new SudokuException("Row/col out of range (0-8).");
         }
         if (value < 0 || value > 9) {
             throw new SudokuException("Value must be 0..9 (0 = empty).");
         }
-        grid[r][c] = value;
+        grid[row][col] = value;
     }
 
     /**
      * Get value from cell.
      *
-     * @param row1 row index (1-9)
-     * @param col1 column index (1-9)
+     * @param row row index (0-8)
+     * @param col column index (0-8)
      * @return the value in the cell (0-9)
      * @throws SudokuException if row or column is bad range.
      */
-    public int getCell(int row1, int col1) throws SudokuException {
-        int r = row1 - 1;
-        int c = col1 - 1;
-        if (r < 0 || r >= N || c < 0 || c >= N) {
-            throw new SudokuException("Row/col out of range (1-9).");
+    public int getCell(int row, int col) throws SudokuException {
+        if (row < 0 || row >= N || col < 0 || col >= N) {
+            throw new SudokuException("Row/col out of range (0-8).");
         }
-        return grid[r][c];
+        return grid[row][col];
     }
 
     /**
