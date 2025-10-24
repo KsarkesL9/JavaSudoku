@@ -4,6 +4,7 @@ package pl.polsl.michal.sadkowski.java1.sudoku.controller;
 
 import pl.polsl.michal.sadkowski.java1.sudoku.model.SudokuGame;
 import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
+import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.InvalidInputException;
 
 import java.util.Stack;
 
@@ -118,13 +119,14 @@ public class SudokuGUIController {
     public void handleCellInput(int row, int col, String value) {
         String previousValue = getBoardCell(row, col);
         
-        if (value.isEmpty() || value.matches("[1-9]")) {
+        // Zmieniona logika: akceptuje tylko cyfry 1-9
+        if (value.matches("[1-9]")) {
             if (!previousValue.equals(value)) {
                 recordMove(row, col, previousValue, value);
             }
             
             try {
-                int modelValue = value.isEmpty() ? 0 : Integer.parseInt(value);
+                int modelValue = Integer.parseInt(value);
                 game.getBoard().setCell(row, col, modelValue);
             } catch (SudokuException e) {
                 gui.showErrorMessage("Błąd Sudoku: " + e.getMessage());
@@ -136,8 +138,44 @@ public class SudokuGUIController {
             
             checkWinCondition();
         } else {
+            // W przypadku niepoprawnej wartości (np. "0"), przywróć poprzedni stan wizualny
             gui.setCellValue(row, col, previousValue);
         }
+    }
+    
+    /**
+     * Clears the currently selected cell.
+     *
+     * @param row The 0-based row index (0-8).
+     * @param col The 0-based column index (0-8).
+     */
+    public void clearSelectedCell(int row, int col) {
+        String previousValue = getBoardCell(row, col);
+        
+        if (!previousValue.isEmpty()) {
+            recordMove(row, col, previousValue, "");
+            
+            try {
+                game.getBoard().setCell(row, col, 0); // 0 oznacza puste pole
+            } catch (SudokuException e) {
+                gui.showErrorMessage("Błąd Sudoku podczas czyszczenia pola: " + e.getMessage());
+                gui.setCellValue(row, col, previousValue); 
+                return;
+            }
+            
+            gui.setCellValue(row, col, "");
+            checkWinCondition();
+        }
+    }
+    
+    /**
+     * Handles validation errors reported by the View (e.g., when the user enters a non-digit character).
+     * This acts as the exception handler for the View's input.
+     *
+     * @param errorMessage The detailed message about the validation error.
+     */
+    public void handleInputValidationError(String errorMessage) {
+        gui.showErrorMessage(errorMessage);
     }
     
     /**

@@ -2,6 +2,7 @@
 package pl.polsl.michal.sadkowski.java1.sudoku.view;
 
 import pl.polsl.michal.sadkowski.java1.sudoku.controller.SudokuGUIController;
+import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.InvalidInputException;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -68,8 +69,22 @@ public class BoardPanel extends JPanel {
                 cell.setBackground(backgroundColor);
                 cell.setEditable(true); 
                 cell.setFocusable(true);
+                
+                // FIX: Ukrycie kursora poprzez ustawienie koloru na kolor tła. 
+                // To zapobiega błędom NPE, które występują, gdy Caret jest null.
+                cell.setCaretColor(selectedColor); 
 
-                cell.setBorder(getCompositeBorder(row, col));
+                // --- FIX for Arrow Key Conflicts ---
+                // Remove default bindings for arrow keys in the JTextField 
+                // to allow the BoardPanel's WHEN_IN_FOCUSED_WINDOW map to handle navigation.
+                InputMap focusedInputMap = cell.getInputMap(JComponent.WHEN_FOCUSED);
+                focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "none");
+                focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "none");
+                focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "none");
+                focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "none");
+                // --- END FIX ---
+
+                cell.setBorder(getCompositeBorder(row, col, false));
 
                 final int r = row;
                 final int c = col;
@@ -99,16 +114,30 @@ public class BoardPanel extends JPanel {
                     public void keyTyped(KeyEvent e) {
                         if (controller == null) return;
                         char keyChar = e.getKeyChar();
-                        if (Character.isDigit(keyChar) && keyChar != KeyEvent.VK_BACK_SPACE) {
-                             e.consume(); 
-                             String newValue = String.valueOf(keyChar);
-                             controller.handleCellInput(r, c, newValue);
+                        e.consume(); // Zawsze konsumuj, by zapobiec bezpośredniemu wpisaniu w pole JTextField
 
-                        } else if (keyChar == KeyEvent.VK_BACK_SPACE || keyChar == KeyEvent.VK_DELETE || keyChar == '0') {
-                             e.consume(); 
-                             controller.handleCellInput(r, c, "");
-                        } else {
-                            e.consume();
+                        try {
+                            if (Character.isDigit(keyChar)) {
+                                if (keyChar == '0') {
+                                    throw new InvalidInputException(
+                                        "Wprowadzono nieprawidÅ‚owy znak: " + keyChar + ". Cyfra '0' nie moÅ¼e byÄ‡ wpisana. UÅ¼yj Delete/Backspace, aby wyczyÅ›ciÄ‡ pole."
+                                    );
+                                }
+                                String newValue = String.valueOf(keyChar);
+                                controller.handleCellInput(r, c, newValue);
+                                
+                            } else if (keyChar == KeyEvent.VK_BACK_SPACE || keyChar == KeyEvent.VK_DELETE) {
+                                // BACKSPACE i DELETE są używane do czyszczenia pola (delegacja do dedykowanej metody)
+                                controller.clearSelectedCell(r, c);
+                            } else {
+                                // Jeśli to nie jest cyfra ani klawisz usuwania/czyszczenia, rzuć wyjątek
+                                throw new InvalidInputException(
+                                    "Wprowadzono nieprawidÅ‚owy znak: " + keyChar + ". Dozwolone sÄ… tylko cyfry (1-9) lub Delete/Backspace do czyszczenia."
+                                );
+                            }
+                        } catch (InvalidInputException ex) {
+                            // Przekazanie błędu walidacji wejścia do Kontrolera
+                            controller.handleInputValidationError(ex.getMessage());
                         }
                     }
                 });
@@ -126,9 +155,10 @@ public class BoardPanel extends JPanel {
      *
      * @param row The 0-based row index.
      * @param col The 0-based column index.
+     * @param isSelected {@code true} if the cell should have the selection border.
      * @return The composite border for the cell.
      */
-    private Border getCompositeBorder(int row, int col) {
+    private Border getCompositeBorder(int row, int col, boolean isSelected) {
          int top = 1, left = 1, bottom = 1, right = 1;
          if (row % SUBGRID_SIZE == 0) top = 2;
          if (col % SUBGRID_SIZE == 0) left = 2;
@@ -137,7 +167,7 @@ public class BoardPanel extends JPanel {
 
          Border subgridBorder = BorderFactory.createMatteBorder(top, left, bottom, right, subgridBorderColor);
 
-        if (row == selectedRow && col == selectedCol) {
+        if (isSelected) {
            return BorderFactory.createCompoundBorder(selectedBorder, subgridBorder);
         }
 
@@ -159,7 +189,7 @@ public class BoardPanel extends JPanel {
             (previousSelectedRow != row || previousSelectedCol != col))
         {
             cells[previousSelectedRow][previousSelectedCol].setBackground(backgroundColor);
-            cells[previousSelectedRow][previousSelectedCol].setBorder(getCompositeBorder(previousSelectedRow, previousSelectedCol));
+            cells[previousSelectedRow][previousSelectedCol].setBorder(getCompositeBorder(previousSelectedRow, previousSelectedCol, false));
         }
 
         selectedRow = row;
@@ -167,7 +197,7 @@ public class BoardPanel extends JPanel {
         
         if (selectedRow != -1 && selectedCol != -1) {
             cells[selectedRow][selectedCol].setBackground(selectedColor);
-            cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol));
+            cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol, true));
             cells[selectedRow][selectedCol].requestFocusInWindow();
         }
     }
@@ -196,7 +226,7 @@ public class BoardPanel extends JPanel {
         }
          if (selectedRow != -1 && selectedCol != -1) {
             cells[selectedRow][selectedCol].setBackground(backgroundColor);
-            cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol));
+            cells[selectedRow][selectedCol].setBorder(getCompositeBorder(selectedRow, selectedCol, false));
             selectedRow = -1;
             selectedCol = -1;
         }
@@ -227,6 +257,7 @@ public class BoardPanel extends JPanel {
         InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = getActionMap();
 
+        // UP (Arrow Up)
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "moveUp");
         actionMap.put("moveUp", new AbstractAction() {
             @Override
@@ -234,6 +265,8 @@ public class BoardPanel extends JPanel {
                 moveSelection(-1, 0);
             }
         });
+        
+        // DOWN (Arrow Down)
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "moveDown");
         actionMap.put("moveDown", new AbstractAction() {
             @Override
@@ -242,6 +275,7 @@ public class BoardPanel extends JPanel {
             }
         });
 
+        // LEFT (Arrow Left)
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "moveLeft");
         actionMap.put("moveLeft", new AbstractAction() {
             @Override
@@ -250,6 +284,7 @@ public class BoardPanel extends JPanel {
             }
         });
 
+        // RIGHT (Arrow Right)
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "moveRight");
         actionMap.put("moveRight", new AbstractAction() {
             @Override
@@ -261,6 +296,7 @@ public class BoardPanel extends JPanel {
 
     /**
      * Calculates the new selection based on the delta and calls {@link #selectCell(int, int)}.
+     * Implements wrap-around navigation.
      *
      * @param rowDelta Change in row index (-1, 0, or 1).
      * @param colDelta Change in column index (-1, 0, or 1).
@@ -269,12 +305,10 @@ public class BoardPanel extends JPanel {
         if (selectedRow == -1 || selectedCol == -1) {
             selectCell(0, 0);
         } else {
-            int newRow = selectedRow + rowDelta;
-            int newCol = selectedCol + colDelta;
+            int newRow = (selectedRow + rowDelta + GRID_SIZE) % GRID_SIZE;
+            int newCol = (selectedCol + colDelta + GRID_SIZE) % GRID_SIZE;
 
-            if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE) {
-                 selectCell(newRow, newCol);
-            }
+            selectCell(newRow, newCol);
         }
     }
     
@@ -285,5 +319,14 @@ public class BoardPanel extends JPanel {
      */
     public boolean hasSelection() {
         return selectedRow != -1 && selectedCol != -1;
+    }
+    
+    /**
+     * Provides direct access to the grid cells for traversal policy use.
+     *
+     * @return The 2D array of JTextField cells.
+     */
+    public JTextField[][] getCells() {
+        return cells;
     }
 }

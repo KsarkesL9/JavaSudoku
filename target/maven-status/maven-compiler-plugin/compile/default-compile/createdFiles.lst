@@ -1,5 +1,6 @@
 pl\polsl\michal\sadkowski\java1\sudoku\view\BoardPanel$2.class
 pl\polsl\michal\sadkowski\java1\sudoku\controller\SudokuGUIController.class
+pl\polsl\michal\sadkowski\java1\sudoku\view\SudokuGUI$CustomFocusTraversalPolicy.class
 pl\polsl\michal\sadkowski\java1\sudoku\view\SudokuGUI$1.class
 pl\polsl\michal\sadkowski\java1\sudoku\controller\SudokuGUIController$GUIUpdater.class
 pl\polsl\michal\sadkowski\java1\sudoku\view\BoardPanel$7.class
@@ -13,6 +14,7 @@ pl\polsl\michal\sadkowski\java1\sudoku\view\ConsoleView.class
 pl\polsl\michal\sadkowski\java1\sudoku\view\BoardPanel$3.class
 pl\polsl\michal\sadkowski\java1\sudoku\view\BoardPanel.class
 pl\polsl\michal\sadkowski\java1\sudoku\Sudoku$1.class
+pl\polsl\michal\sadkowski\java1\sudoku\exceptions\InvalidInputException.class
 pl\polsl\michal\sadkowski\java1\sudoku\controller\GameTimer.class
 pl\polsl\michal\sadkowski\java1\sudoku\exceptions\package-info.class
 pl\polsl\michal\sadkowski\java1\sudoku\controller\package-info.class
