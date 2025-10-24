@@ -7,9 +7,12 @@ import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
 import pl.polsl.michal.sadkowski.java1.sudoku.view.ConsoleView;
 
 /**
- * Simple controller:
- * - if have args -> do task and finish
- * - if no args -> simple REPL (print, set, get, clear, exit)
+ * Simple controller for the console-based Sudoku application.
+ * It provides two modes:
+ * <ul>
+ * <li>If arguments are provided: execute a single command and exit.</li>
+ * <li>If no arguments are provided: start an interactive REPL (Read-Eval-Print Loop).</li>
+ * </ul>
  *
  * @author Michał Sadkowski
  * @version 1.2 (fit to 0-based indexing model)
@@ -17,13 +20,13 @@ import pl.polsl.michal.sadkowski.java1.sudoku.view.ConsoleView;
 public class AppController {
     /** The Sudoku game state. */
     private final SudokuGame game = new SudokuGame("guest");
-    /** The console view for show output and take input. */
+    /** The console view for showing output and taking input. */
     private final ConsoleView view = new ConsoleView();
 
     /**
-     * Run application logic.
+     * Runs the application logic.
      *
-     * @param args command-line args to do one task, or null/empty for REPL mode.
+     * @param args Command-line arguments to perform one task, or an empty/null array for REPL mode.
      */
     public void run(String[] args) {
         if (args != null && args.length > 0) {
@@ -34,9 +37,11 @@ public class AppController {
     }
 
     /**
-     * Do one command from command-line args.
+     * Executes a single command based on command-line arguments.
      *
-     * @param parts array of command parts (command, row, col, value).
+     * @param parts Array of command parts (command, row, column, value).
+     * @throws SudokuException if a Sudoku rule is broken during a 'set' operation.
+     * @throws Exception for any other unexpected error.
      */
     private void handleCommand(String[] parts) {
         String cmd = parts[0].toLowerCase();
@@ -89,7 +94,7 @@ public class AppController {
     }
 
     /**
-     * Start the console loop (REPL).
+     * Starts the interactive Read-Eval-Print Loop (REPL) for console play.
      */
     private void repl() {
         view.display("Simple console sudoku editor 9x9");

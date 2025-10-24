@@ -8,8 +8,8 @@ import pl.polsl.michal.sadkowski.java1.sudoku.controller.SudokuGUIController;
 import javax.swing.SwingUtilities;
 
 /**
- * Main class for Sudoku app.
- * Uruchamia wersję GUI, łącząc warstwy Modelu, Widoku i Kontrolera (MVC).
+ * Main class for the Sudoku application.
+ * It starts the GUI version, connecting the Model, View, and Controller layers (MVC).
  *
  * @author Michał Sadkowski
  * @version 1.2 
@@ -17,25 +17,18 @@ import javax.swing.SwingUtilities;
 public class Sudoku {
 
     /**
-     * Entry point of the Sudoku application.
-     * Uruchamia graficzny interfejs użytkownika, stosując Dependency Injection (Wstrzykiwanie Zależności).
+     * The main entry point of the Sudoku application.
+     * Starts the graphical user interface using Dependency Injection for MVC components.
      *
-     * @param args command-line arguments (obecnie ignorowane przez GUI).
+     * @param args command-line arguments (currently ignored by the GUI).
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                // 1. Inicjalizacja Modelu
                 SudokuGame model = new SudokuGame("GUI Player");
-                
-                // 2. Inicjalizacja Widoku (bez Controller, bo jeszcze go nie ma)
                 SudokuGUI view = new SudokuGUI();
-                
-                // 3. Inicjalizacja Kontrolera (wstrzykujemy Model i referencję do View)
                 SudokuGUIController controller = new SudokuGUIController(model, view);
-                
-                // 4. Wstrzyknięcie Kontrolera do Widoku (kończy cykl zależności)
                 view.setController(controller); 
             }
         });

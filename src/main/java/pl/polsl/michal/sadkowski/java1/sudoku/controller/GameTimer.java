@@ -8,8 +8,11 @@ import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 
 /**
- * Timer logic.
- * Responsible only for time counting and updating the view.
+ * Timer logic for the Sudoku game.
+ * Responsible only for counting time and updating the view through the {@link GUIUpdater} interface.
+ *
+ * @author Michał Sadkowski
+ * @version 1.0
  */
 public class GameTimer {
 
@@ -19,6 +22,7 @@ public class GameTimer {
 
     /**
      * Initializes the timer service.
+     *
      * @param gui The interface to communicate back to the view (to update the timer text).
      */
     public GameTimer(GUIUpdater gui) {
@@ -28,8 +32,9 @@ public class GameTimer {
     }
     
     /**
-     * Handles the tick event every second.
-     * @param e ActionEvent (ignored).
+     * Handles the tick event every second. Increases the elapsed time and updates the timer display in the GUI.
+     *
+     * @param e The ActionEvent (not used).
      */
     private void handleTimerTick(ActionEvent e) {
         timeElapsed++;
@@ -38,29 +43,36 @@ public class GameTimer {
         gui.setTimerText(String.format("Czas: %02d:%02d", minutes, seconds));
     }
 
-    /** Starts the timer if it is not already running. */
+    /**
+     * Starts the timer if it is not already running.
+     */
     public void start() {
         if (!gameTimer.isRunning()) {
             gameTimer.start();
         }
     }
 
-    /** Stops the timer if it is running. */
+    /**
+     * Stops the timer if it is running.
+     */
     public void stop() {
         if (gameTimer.isRunning()) {
             gameTimer.stop();
         }
     }
 
-    /** Resets the time count to zero and updates the view. */
+    /**
+     * Resets the time count to zero and updates the view with the initial time display.
+     */
     public void reset() {
         timeElapsed = 0;
         gui.setTimerText("Czas: 00:00");
     }
 
     /**
-     * Gets the current time elapsed in minutes and seconds as a formatted string.
-     * @return Formatted time string.
+     * Gets the current elapsed time in minutes and seconds as a formatted string (e.g., "05:30").
+     *
+     * @return The formatted time string.
      */
     public String getCurrentFormattedTime() {
         int minutes = timeElapsed / 60;

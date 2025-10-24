@@ -6,45 +6,46 @@ import pl.polsl.michal.sadkowski.java1.sudoku.model.Board;
 import java.util.Scanner;
 
 /**
- * Console view for display Sudoku board and handle user input.
+ * Console view responsible for displaying the Sudoku board and handling raw user input 
+ * from the console.
  *
  * @author Michał Sadkowski
  * @version 1.2 (try Parse refactor)
  */
 public class ConsoleView {
-    /** Scanner object for reading user input from console. */
+    /** Scanner object for reading user input from the console. */
     private final Scanner sc;
 
     /**
-     * Make a ConsoleView and start Scanner.
+     * Creates a ConsoleView instance and initializes the Scanner object.
      */
     public ConsoleView() {
         this.sc = new Scanner(System.in);
     }
 
     /**
-     * Show the Sudoku board.
+     * Displays the current state of the Sudoku board to the console.
      *
-     * @param board The Board object to show.
+     * @param board The Board object to display.
      */
     public void display(Board board) {
         System.out.println(board.toString());
     }
 
     /**
-     * Show simple text line to console.
+     * Displays a simple text line to the console.
      *
-     * @param line The string to show.
+     * @param line The string content to show.
      */
     public void display(String line) {
         System.out.println(line);
     }
 
     /**
-     * Show a prompt and wait for user line.
+     * Displays a prompt and waits for the user to enter a line of text.
      *
-     * @param text The text prompt to show user.
-     * @return The line text user write.
+     * @param text The prompt message to show the user.
+     * @return The trimmed line of text entered by the user, or an empty string if null.
      */
     public String prompt(String text) {
         System.out.print(text + " ");
@@ -53,11 +54,11 @@ public class ConsoleView {
     }
 
     /**
-     * Ask user for a number (dla wiersza/kolumny).
+     * Prompts the user for input and attempts to parse it as an integer (typically for row/column 1-9).
      *
      * @param prompt The prompt message to show.
-     * @return The number user write.
-     * @throws NumberFormatException if the input is not a good number.
+     * @return The number entered by the user.
+     * @throws NumberFormatException if the input cannot be correctly parsed as an integer.
      */
     public int askInt(String prompt) {
         String line = prompt(prompt);
@@ -65,11 +66,11 @@ public class ConsoleView {
     }
 
     /**
-     * Ask user for a number (dla wartości 0-9).
+     * Prompts the user for input and attempts to parse it as an integer (typically for value 0-9).
      *
      * @param prompt The prompt message to show.
-     * @return The number user write.
-     * @throws NumberFormatException if the input is not a good number.
+     * @return The number entered by the user.
+     * @throws NumberFormatException if the input cannot be correctly parsed as an integer.
      */
     public int askIntAllowZero(String prompt) {
         String line = prompt(prompt);
@@ -77,10 +78,10 @@ public class ConsoleView {
     }
 
     /**
-     * Helper method to parse string to a number.
+     * Helper method to safely parse a string to an Integer.
      *
-     * @param s The string to parse.
-     * @return The number or null if bad parse.
+     * @param s The string to attempt to parse.
+     * @return The parsed Integer, or {@code null} if the parsing fails due to a bad format.
      */
     public Integer tryParse(String s) {
         try {

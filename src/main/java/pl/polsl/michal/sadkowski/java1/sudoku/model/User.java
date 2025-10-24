@@ -1,21 +1,20 @@
 package pl.polsl.michal.sadkowski.java1.sudoku.model;
 
 /**
- * Simple user object.
- * Some methods are not here.
- * Only store name now.
+ * Simple user object representing the player.
+ * Currently, only the player's username is stored.
  *
  * @author Michał Sadkowski
  * @version 1.1
  */
 public class User {
-    /** The name of player. */
+    /** The name of the player. */
     private String username;
 
     /**
-     * Make a User object. Set name to "guest" if name is null or empty.
+     * Creates a User object. Sets the name to "guest" if the provided name is null or empty.
      *
-     * @param username the name user want.
+     * @param username The desired name for the user.
      */
     public User(String username) {
         if (username == null || username.isEmpty()) this.username = "guest";
@@ -23,18 +22,18 @@ public class User {
     }
 
     /**
-     * Give the current name.
+     * Gets the current username.
      *
-     * @return the name.
+     * @return The current username.
      */
     public String getUsername() {
         return username;
     }
 
     /**
-     * Set new name if string is not null or empty.
+     * Sets a new username if the provided string is not null or empty.
      *
-     * @param username the new name.
+     * @param username The new username.
      */
     public void setUsername(String username) {
         if (username == null || username.isEmpty()) return;
@@ -42,16 +41,16 @@ public class User {
     }
 
     /**
-     * This is method for saving state. Not implemented.
+     * Placeholder method for saving the user's state. Not implemented yet.
      */
     public void saveState() {
         // To implement later
     }
 
     /**
-     * Give a string text for the User object.
+     * Returns a string representation of the User object.
      *
-     * @return a string with the name.
+     * @return A string containing the username.
      */
     @Override
     public String toString() {

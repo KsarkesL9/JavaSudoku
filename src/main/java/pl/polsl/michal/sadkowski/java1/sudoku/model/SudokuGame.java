@@ -2,7 +2,7 @@ package pl.polsl.michal.sadkowski.java1.sudoku.model;
 
 /**
  * Class representing the entire Sudoku game session.
- * It holds the board and user information.
+ * It holds the board and user information, acting as the main entry point to the model layer.
  *
  * @author Michał Sadkowski
  * @version 1.1
@@ -14,7 +14,7 @@ public class SudokuGame {
     private final User user;
 
     /**
-     * Make new Sudoku game session.
+     * Creates a new Sudoku game session, initializing the board and user.
      *
      * @param username The name of the player.
      */
@@ -24,28 +24,28 @@ public class SudokuGame {
     }
 
     /**
-     * Get the board object for work.
+     * Gets the board object to perform cell operations.
      *
-     * @return The Sudoku board.
+     * @return The Sudoku board instance.
      */
     public Board getBoard() {
         return board;
     }
 
     /**
-     * Get the user object.
+     * Gets the user object.
      *
-     * @return The current user.
+     * @return The current user instance.
      */
     public User getUser() {
         return user;
     }
 
     /**
-     * Check if board is finished and correct.
-     * This is not implemented yet.
+     * Checks if the board is completely filled and correctly solved.
+     * Note: The solving logic is currently not implemented.
      *
-     * @return true if game is won, false if not.
+     * @return {@code true} if the game is won, {@code false} otherwise.
      */
     public boolean checkWin() {
         // Must implement later

@@ -5,8 +5,8 @@ package pl.polsl.michal.sadkowski.java1.sudoku.model;
 import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
 
 /**
- * Class for Sudoku board 9x9.
- * This class store state and set/clear board.
+ * Class representing a standard 9x9 Sudoku board.
+ * This class stores the board state and manages setting and clearing cell values.
  *
  * @author Michał Sadkowski
  * @version 1.2 (set to 0-indexing array)
@@ -14,23 +14,23 @@ import pl.polsl.michal.sadkowski.java1.sudoku.exceptions.SudokuException;
 public class Board {
     /** The board size is 9x9. */
     private static final int N = 9;
-    /** The 2D array for Sudoku grid. */
+    /** The 2D array for the Sudoku grid. Uses 0-based indexing (0-8). */
     private final int[][] grid;
 
     /**
-     * Make new empty 9x9 Sudoku board.
+     * Creates a new empty 9x9 Sudoku board, filling all cells with 0.
      */
     public Board() {
         grid = new int[N][N];
     }
 
     /**
-     * Set value in cell.
+     * Sets the value of a specific cell.
      *
-     * @param row row index (0-8)
-     * @param col column index (0-8)
-     * @param value value to set (0-9, 0 is empty)
-     * @throws SudokuException if row, column or value is bad range.
+     * @param row The 0-based row index (0-8).
+     * @param col The 0-based column index (0-8).
+     * @param value The value to set (0-9, where 0 is an empty cell).
+     * @throws SudokuException If the row, column, or value is outside the allowed range.
      */
     public void setCell(int row, int col, int value) throws SudokuException {
         if (row < 0 || row >= N || col < 0 || col >= N) {
@@ -43,12 +43,12 @@ public class Board {
     }
 
     /**
-     * Get value from cell.
+     * Gets the value from a specific cell.
      *
-     * @param row row index (0-8)
-     * @param col column index (0-8)
-     * @return the value in the cell (0-9)
-     * @throws SudokuException if row or column is bad range.
+     * @param row The 0-based row index (0-8).
+     * @param col The 0-based column index (0-8).
+     * @return The value in the cell (0-9).
+     * @throws SudokuException If the row or column is outside the allowed range.
      */
     public int getCell(int row, int col) throws SudokuException {
         if (row < 0 || row >= N || col < 0 || col >= N) {
@@ -58,7 +58,7 @@ public class Board {
     }
 
     /**
-     * Clear all board, set all cells to 0 (empty).
+     * Clears the entire board by setting all cell values to 0 (empty).
      */
     public void clear() {
         for (int r = 0; r < N; r++) {
@@ -69,9 +69,9 @@ public class Board {
     }
 
     /**
-     * Make a string for board console display.
+     * Generates a string representation of the board for console display.
      *
-     * @return good formatted string of the board
+     * @return A well-formatted string of the board.
      */
     @Override
     public String toString() {
